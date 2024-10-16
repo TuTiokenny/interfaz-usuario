@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .task-list {
+            list-style-type: none;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .task-item:hover {
+            background-color: #f1f1f1;
+            transform: scale(1.02);
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-actions i {
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .task-actions i:hover {
+            color: var(--primary-color);
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .active {
+            display: block;
+        }
+
+        .priority-high { border-left: 4px solid #e74c3c; }
+        .priority-medium { border-left: 4px solid #f39c12; }
+        .priority-low { border-left: 4px solid #2ecc71; }
+
+        .task-date {
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .dark-mode {
+            --background-color: #2c3e50;
+            --text-color: #ecf0f1;
+        }
+
+        .dark-mode .card, .dark-mode .task-item {
+            background-color: #34495e;
+            color: #ecf0f1;
+        }
+
+        .dark-mode input[type="text"], .dark-mode input[type="password"] {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border-color: #4a6278;
+        }
+
+        #add-task-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #add-task-btn:hover {
+            transform: scale(1.1);
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+
+        <div id="login-screen" class="screen active">
+            <div class="card">
+                <h1>Iniciar Sesión</h1>
+                <input type="text" id="username" placeholder="Nombre de usuario" aria-label="Nombre de usuario">
+                <input type="password" id="password" placeholder="Contraseña" aria-label="Contraseña">
+                <button onclick="login()">Iniciar Sesión</button>
+            </div>
+        </div>
+
+        <div id="task-list-screen" class="screen">
+            <div class="card">
+                <h1>Mis Tareas</h1>
+                <ul id="tasks" class="task-list"></ul>
+            </div>
+        </div>
+
+        <div id="add-task-screen" class="screen">
+            <div class="card">
+                <h1>Agregar Tarea</h1>
+                <input type="text" id="new-task" placeholder="Nueva tarea" aria-label="Nueva tarea">
+                <select id="task-priority">
+                    <option value="low">Baja</option>
+                    <option value="medium">Media</option>
+                    <option value="high">Alta</option>
+                </select>
+                <button onclick="addTask()">Guardar</button>
+                <button onclick="showTaskList()">Cancelar</button>
+            </div>
+        </div>
+
+        <button id="add-task-btn" onclick="showAddTask()"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <script>
+        let tasks = [
+            { id: 1, text: 'Comprar leche', priority: 'low', date: '2023-05-15' },
+            { id: 2, text: 'Llamar al médico', priority: 'high', date: '2023-05-16' },
+            { id: 3, text: 'Pagar facturas', priority: 'medium', date: '2023-05-17' }
+        ];
+
+        function login() {
+            document.getElementById('login-screen').classList.remove('active');
+            document.getElementById('task-list-screen').classList.add('active');
+            renderTasks();
+        }
+
+        function showAddTask() {
+            document.getElementById('task-list-screen').classList.remove('active');
+            document.getElementById('add-task-screen').classList.add('active');
+        }
+
+        function showTaskList() {
+            document.getElementById('add-task-screen').classList.remove('active');
+            document.getElementById('task-list-screen').classList.add('active');
+        }
+
+        function addTask() {
+            const newTask = document.getElementById('new-task').value;
+            const priority = document.getElementById('task-priority').value;
+            if (newTask) {
+                const task = {
+                    id: tasks.length + 1,
+                    text: newTask,
+                    priority: priority,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                tasks.push(task);
+                document.getElementById('new-task').value = '';
+                showTaskList();
+                renderTasks();
+            }
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('tasks');
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item priority-${task.priority}`;
+                li.innerHTML = `
+                    <span>${task.text}</span>
+                    <div class="task-actions">
+                        <span class="task-date">${task.date}</span>
+                        <i class="fas fa-edit" onclick="editTask(${task.id})"></i>
+                        <i class="fas fa-trash" onclick="deleteTask(${task.id})"></i>
+                    </div>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                document.getElementById('new-task').value = task.text;
+                document.getElementById('task-priority').value = task.priority;
+                showAddTask();
+            }
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            this.innerHTML = document.body.classList.contains('dark-mode') ? 
+                '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
+    </script>
+</body>
+</html>
